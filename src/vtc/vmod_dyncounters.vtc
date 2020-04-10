@@ -1,0 +1,46 @@
+varnishtest "test vmod-dyncounters"
+
+barrier b1 cond 2
+
+server s1 {
+	rxreq
+	barrier b1 sync
+	txresp
+} -start
+
+varnish v1 -vcl+backend {
+        import dyncounters;
+
+	sub vcl_init {
+	    new TEST = dyncounters.head();
+	    TEST.doc("req", format=integer, type=counter, level=info, oneliner="requests");
+        }
+
+	sub vcl_recv {
+	    TEST.incr(req.method, "req", 1);
+    	    TEST.incr(req.http.host, "req", 1);
+	}
+
+        sub vcl_deliver {
+	    TEST.incr("FOO" + "BAR", "req", 1);
+	    TEST.incr(resp.status, "req", 1);
+        }
+} -start
+
+client c1 {
+	txreq
+	rxresp
+	expect resp.status == 200
+} -start
+
+client c2 {
+       barrier b1 sync
+	txreq
+	rxresp
+	expect resp.status == 200
+} -start
+
+client c1 -wait
+client c2 -wait
+process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run
+

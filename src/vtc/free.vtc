@@ -1,0 +1,36 @@
+varnishtest "free vmod-dyncounters"
+
+server s1 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -vcl+backend {
+        import dyncounters;
+
+	sub vcl_init {
+	    new TEST = dyncounters.head();
+        }
+
+	sub vcl_recv {
+	    TEST.incr(req.method, "req", 1);
+    	    TEST.incr(req.proto, "req", 1);
+	}
+} -start
+
+client c1 {
+	txreq
+	rxresp
+	expect resp.status == 200
+} -start
+
+process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run
+
+client c1 -wait
+varnish v1 -vcl+backend { } -cliok "vcl.use vcl2" -cliok "vcl.discard vcl1"
+
+delay 1
+varnish v1 -expect vmods == 0
+
+process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run
+

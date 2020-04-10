@@ -3,15 +3,15 @@ AM_CFLAGS = $(VARNISHAPI_CFLAGS)
 # Modules
 
 vmod_LTLIBRARIES = \
-	libvmod_dynmetrics.la
+	libvmod_dyncounters.la
 
-libvmod_dynmetrics_la_LDFLAGS = $(VMOD_LDFLAGS)
-libvmod_dynmetrics_la_SOURCES = vmod_dynmetrics.c
-nodist_libvmod_dynmetrics_la_SOURCES = \
-	vcc_dynmetrics_if.c \
-	vcc_dynmetrics_if.h
+libvmod_dyncounters_la_LDFLAGS = $(VMOD_LDFLAGS)
+libvmod_dyncounters_la_SOURCES = vmod_dyncounters.c lft.c vsc_obj.c vsc_head.c
+nodist_libvmod_dyncounters_la_SOURCES = \
+	vcc_dyncounters_if.c \
+	vcc_dyncounters_if.h
 
-@BUILD_VMOD_DYNMETRICS@
+@BUILD_VMOD_DYNCOUNTERS@
 
 # Test suite
 
@@ -25,16 +25,17 @@ AM_VTC_LOG_FLAGS = \
 	-p vmod_path="$(abs_builddir)/.libs:$(vmoddir):$(VARNISHAPI_VMODDIR)"
 
 TESTS = \
-	vtc/vmod_dynmetrics.vtc
+	vtc/vmod_dyncounters.vtc \
+	vtc/free.vtc
 
 # Documentation
 
 dist_doc_DATA = \
-	vmod_dynmetrics.vcc \
+	vmod_dyncounters.vcc \
 	$(TESTS)
 
 dist_man_MANS = \
-	vmod_dynmetrics.3
+	vmod_dyncounters.3
 
 
 .rst.1:

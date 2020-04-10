@@ -1,5 +1,5 @@
 AC_PREREQ([2.68])
-AC_INIT([libvmod-dynmetrics], [0.1], [], [vmod-dynmetrics])
+AC_INIT([libvmod-dyncounters], [0.1], [], [vmod-dyncounters])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADER([config.h])
@@ -18,8 +18,8 @@ AC_ARG_WITH([rst2man],
 	[RST2MAN="$withval"],
 	AC_CHECK_PROGS(RST2MAN, [rst2man rst2man.py], []))
 
-VARNISH_PREREQ([6.0.0])
-VARNISH_VMODS([dynmetrics])
+VARNISH_PREREQ([6.2.0])
+VARNISH_VMODS([dyncounters])
 
 AC_CONFIG_FILES([
 	Makefile

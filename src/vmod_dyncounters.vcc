@@ -1,0 +1,72 @@
+#
+# Copyright (c) 2020 Emmanuel Hocdet
+# https://github.com/ehocdet/libvmod-dyncounters/
+#
+
+$Module dyncounters 3 "Varnish dynamic metrics module"
+$ABI vrt
+
+DESCRIPTION
+===========
+
+`vmod_dyncounters` enables custom metrics in a dynamic manner.
+Dynamic metrics can persist between VCL loads.
+
+vcl sample:
+::
+
+        import dyncounters;
+
+	sub vcl_init {
+	    new TEST = dyncounters.head();
+	}
+	sub vcl_recv {
+	    TEST.incr(req.method, "suffix", 1);
+	}
+
+varnishstat -1 -f "TEST*":
+::
+
+	TEST.GET.suffix              1         0.00
+	TEST.HEAD.suffix             2         0.00
+
+vcl sample:
+::
+
+        import dyncounters;
+	import proxy;
+
+	sub vcl_init {
+	    new SSL = dyncounters.head();
+	    SSL.doc("req", format=integer, type=counter, level=info, oneliner="requests");
+        }
+	sub vcl_recv {
+	    if (proxy.is_ssl()) {
+               SSL.incr(proxy.ssl_version() + ":" + proxy.ssl_cipher() + ":" + req.proto, "req", 1);
+	    }
+	}
+
+varnishstat -1 -f "SSL*":
+::
+
+    SSL.TLSv1.2:ECDHE-ECDSA-AES256-GCM-SHA384:HTTP/1.1.req            7         0.00 requests
+    SSL.TLSv1.2:ECDHE-ECDSA-AES128-GCM-SHA256:HTTP/1.1.req            1         0.00 requests
+    SSL.TLSv1.3:TLS_AES_128_GCM_SHA256:HTTP/1.1.req                   6         0.00 requests
+
+
+$Event dyncounters_event
+
+$Object head()
+
+$Method VOID .doc(STRING suffix, ENUM {bitmap, bytes, duration, integer} format=integer, ENUM {bitmap, counter, gauge} type=counter, ENUM {info, debug, diag} level=info, STRING oneliner="")
+
+$Method VOID .incr(STRANDS s, STRING suffix, INT d)
+
+$Method VOID .decr(STRANDS s, STRING suffix, INT d)
+
+$Method VOID .set(STRANDS s, STRING suffix, INT d)
+
+
+
+SEE ALSO
+========vcl\(7),varnishd\(1)
