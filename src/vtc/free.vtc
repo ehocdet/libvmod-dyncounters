@@ -24,7 +24,8 @@ client c1 {
 	expect resp.status == 200
 } -start
 
-process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run
+varnish v1 -expect TEST.GET.req == 1
+varnish v1 -expect TEST.HTTP/1.1.req == 1
 
 client c1 -wait
 varnish v1 -vcl+backend { } -cliok "vcl.use vcl2" -cliok "vcl.discard vcl1"
@@ -32,5 +33,7 @@ varnish v1 -vcl+backend { } -cliok "vcl.use vcl2" -cliok "vcl.discard vcl1"
 delay 1
 varnish v1 -expect vmods == 0
 
-process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run
+shell -expect "0" "varnishstat -1 -n ${v1_name} -f TEST.* | wc -l"
+
+#process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run
 

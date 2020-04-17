@@ -26,7 +26,9 @@ AM_VTC_LOG_FLAGS = \
 
 TESTS = \
 	vtc/vmod_dyncounters.vtc \
-	vtc/free.vtc
+	vtc/free.vtc \
+	vtc/rush.vtc \
+	vtc/persist.vtc
 
 # Documentation
 

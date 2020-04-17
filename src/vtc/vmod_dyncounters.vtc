@@ -1,10 +1,7 @@
 varnishtest "test vmod-dyncounters"
 
-barrier b1 cond 2
-
 server s1 {
 	rxreq
-	barrier b1 sync
 	txresp
 } -start
 
@@ -34,13 +31,16 @@ client c1 {
 } -start
 
 client c2 {
-       barrier b1 sync
 	txreq
 	rxresp
 	expect resp.status == 200
 } -start
 
-client c1 -wait
-client c2 -wait
-process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run
+varnish v1 -expect TEST.GET.req == 2
+varnish v1 -expect TEST.127.0.0.1.req == 2
+varnish v1 -expect TEST.FOOBAR.req == 2
+varnish v1 -expect TEST.200.req == 2
 
+shell -expect "4" "varnishstat -1 -n ${v1_name} -f TEST.* | wc -l"
+
+#process p1 -dump {varnishstat -1 -n ${v1_name} -f TEST.*} -run

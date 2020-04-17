@@ -1,0 +1,96 @@
+varnishtest "rush vmod-dyncounters"
+
+barrier b1 cond 9
+
+server s1 -repeat 9 {
+       rxreq
+       txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import dyncounters;
+
+	sub vcl_init {
+		new TEST = dyncounters.head();
+	}
+
+	sub vcl_recv {
+		TEST.incr(req.method, "req", 1);
+	}
+
+	sub vcl_deliver {
+		TEST.incr(req.method + ":" + resp.status, "req", 1);
+		TEST.decr(req.method, "req", 1);
+	}
+
+} -start
+
+client c1 {
+	barrier b1 sync
+	txreq
+	rxresp
+} -start
+
+client c2 {
+	barrier b1 sync
+	txreq -req HEAD
+	rxresp
+} -start
+
+client c3 {
+	barrier b1 sync
+	txreq
+	rxresp
+} -start
+
+client c4 {
+	barrier b1 sync
+	txreq -req HEAD
+	rxresp
+} -start
+
+client c5 {
+	barrier b1 sync
+	txreq
+	rxresp
+} -start
+
+client c6 {
+	barrier b1 sync
+	txreq
+	rxresp
+} -start
+
+client c7 {
+	barrier b1 sync
+	txreq -req HEAD
+	rxresp
+} -start
+
+client c8 {
+	barrier b1 sync
+	txreq
+	rxresp
+} -start
+
+client c9 {
+	barrier b1 sync
+	txreq
+	rxresp
+} -start
+
+client c1 -wait
+client c2 -wait
+client c3 -wait
+client c4 -wait
+client c5 -wait
+client c6 -wait
+client c7 -wait
+client c8 -wait
+client c9 -wait
+
+varnish v1 -expect TEST.GET.req == 0
+varnish v1 -expect TEST.HEAD.req == 0
+varnish v1 -expect TEST.GET:200.req == 6
+varnish v1 -expect TEST.HEAD:200.req == 3
+
