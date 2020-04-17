@@ -1,0 +1,162 @@
+
+==================================================
+VMOD dyncounters - Varnish dynamic counters module
+==================================================
+
+DESCRIPTION
+===========
+
+`vmod_dyncounters` enables custom counters in a dynamic manner.
+Dynamic counters can persist between VCL loads.
+Module can support a lot of counters.
+
+vcl sample:
+::
+
+	import dyncounters;
+
+	sub vcl_init {
+	    new TEST = dyncounters.head();
+	}
+	sub vcl_recv {
+	    TEST.incr(req.method, "suffix", 1);
+	}
+
+varnishstat -1 -f "TEST*":
+::
+
+	TEST.GET.suffix              1         0.00
+	TEST.HEAD.suffix             2         0.00
+
+vcl sample:
+::
+
+	import dyncounters;
+	import proxy;
+
+	sub vcl_init {
+	    new SSL = dyncounters.head();
+	    SSL.doc("req", format=integer, type=counter, level=info, oneliner="requests");
+        }
+	sub vcl_recv {
+	    if (proxy.is_ssl()) {
+               SSL.incr(proxy.ssl_version() + ":" + proxy.ssl_cipher() + ":" + req.proto, "req", 1);
+	    }
+	}
+
+varnishstat -1 -f "SSL*":
+::
+
+    SSL.TLSv1.2:ECDHE-ECDSA-AES256-GCM-SHA384:HTTP/1.1.req            7         0.00 requests
+    SSL.TLSv1.2:ECDHE-ECDSA-AES128-GCM-SHA256:HTTP/1.1.req            1         0.00 requests
+    SSL.TLSv1.3:TLS_AES_128_GCM_SHA256:HTTP/1.1.req                   6         0.00 requests
+
+.. _dyncounters.head():
+
+new xhead = dyncounters.head()
+------------------------------
+
+Description
+	Create a head of dynamique counters. The object name is the prefix
+	of all counter names attached to the head. The head and its counters
+	persist between VCLs until a VCL has vcl_init the object.
+
+Example
+	new DYNC = dyncounters.head();
+
+.. _xhead.doc():
+
+VOID xhead.doc(STRING suffix, ENUM format, ENUM type, ENUM level, STRING oneliner)
+----------------------------------------------------------------------------------
+
+::
+
+      VOID xhead.doc(
+            STRING suffix,
+            ENUM {bitmap, bytes, duration, integer} format=integer,
+            ENUM {bitmap, counter, gauge} type=counter,
+            ENUM {info, debug, diag} level=info,
+            STRING oneliner=""
+      )
+
+Description
+	Create a documentation for all counters with suffix ``suffix``
+	attached to the object head. This documentation is unique and
+	persist with object head: any re-declaration of suffix will be
+	ignored.
+
+	``suffix``
+	Counter suffix.
+
+	``format``
+	Counter format.
+
+	``type``
+	Counter type.
+
+	``level``
+	Counter level.
+
+	``oneliner``
+	Counter description.
+
+Example
+	DYNC.doc("req", format=integer, type=counter, level=info, oneliner="requests");
+
+.. _xhead.incr():
+
+VOID xhead.incr(STRING radical, STRING suffix, INT d)
+-----------------------------------------------------
+
+Description
+	Increment value of counter "<head name>.<radical>.<suffix>"
+	The counter is created on the fly if it does not exist.
+	Documentation for "suffix" is created on the fly if it does
+	not exist (with default values).
+	Negative values are ignored.
+
+Example
+	DYNC.incr(req.method, "req", 1);
+
+.. _xhead.decr():
+
+VOID xhead.decr(STRING radical, STRING suffix, INT d)
+-----------------------------------------------------
+
+Description
+	Decrement value of counter "<head name>.<radical>.<suffix>"
+	The counter is created on the fly if it does not exist.
+	Documentation for "suffix" is created on the fly if it does
+	not exist (with default values).
+	Negative values are ignored.
+
+Example
+	DYNC.decr(req.method, "req", 1);
+
+.. _xhead.set():
+
+VOID xhead.set(STRING radical, STRING suffix, INT d)
+----------------------------------------------------
+
+Description
+	Set value of counter "<head name>.<radical>.<suffix>"
+	The counter is created on the fly if it does not exist.
+	Documentation for "suffix" is created on the fly if it does
+	not exist (with default values).
+	Negative values are ignored.
+
+Example
+	DYNC.set(req.method, "req", 1);
+
+
+SEE ALSO
+========vcl\(7),varnishd\(1)
+
+COPYRIGHT
+=========
+
+::
+
+  Copyright (c) 2020 Emmanuel Hocdet
+  https://github.com/ehocdet/libvmod-dyncounters/
+ 
