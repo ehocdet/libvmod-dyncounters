@@ -3,19 +3,20 @@
 # https://github.com/ehocdet/libvmod-dyncounters/
 #
 
-$Module dyncounters 3 "Varnish dynamic metrics module"
+$Module dyncounters 3 "Varnish dynamic counters module"
 $ABI vrt
 
 DESCRIPTION
 ===========
 
-`vmod_dyncounters` enables custom metrics in a dynamic manner.
-Dynamic metrics can persist between VCL loads.
+`vmod_dyncounters` enables custom counters in a dynamic manner.
+Dynamic counters can persist between VCL loads.
+Module can support a lot of counters.
 
 vcl sample:
 ::
 
-        import dyncounters;
+	import dyncounters;
 
 	sub vcl_init {
 	    new TEST = dyncounters.head();
@@ -33,7 +34,7 @@ varnishstat -1 -f "TEST*":
 vcl sample:
 ::
 
-        import dyncounters;
+	import dyncounters;
 	import proxy;
 
 	sub vcl_init {
@@ -58,14 +59,75 @@ $Event dyncounters_event
 
 $Object head()
 
+Description
+	Create a head of dynamique counters. The object name is the prefix
+	of all counter names attached to the head. The head and its counters
+	persist between VCLs until a VCL has vcl_init the object.
+
+Example
+	new DYNC = dyncounters.head();
+
 $Method VOID .doc(STRING suffix, ENUM {bitmap, bytes, duration, integer} format=integer, ENUM {bitmap, counter, gauge} type=counter, ENUM {info, debug, diag} level=info, STRING oneliner="")
 
-$Method VOID .incr(STRANDS s, STRING suffix, INT d)
+Description
+	Create a documentation for all counters with suffix ``suffix``
+	attached to the object head. This documentation is unique and
+	persist with object head: any re-declaration of suffix will be
+	ignored.
 
-$Method VOID .decr(STRANDS s, STRING suffix, INT d)
+	``suffix``
+	Counter suffix.
 
-$Method VOID .set(STRANDS s, STRING suffix, INT d)
+	``format``
+	Counter format.
 
+	``type``
+	Counter type.
+
+	``level``
+	Counter level.
+
+	``oneliner``
+	Counter description.
+
+Example
+	DYNC.doc("req", format=integer, type=counter, level=info, oneliner="requests");
+
+$Method VOID .incr(STRANDS radical, STRING suffix, INT d)
+
+Description
+	Increment value of counter "<head name>.<radical>.<suffix>"
+	The counter is created on the fly if it does not exist.
+	Documentation for "suffix" is created on the fly if it does
+	not exist (with default values).
+	Negative values are ignored.
+
+Example
+	DYNC.incr(req.method, "req", 1);
+
+$Method VOID .decr(STRANDS radical, STRING suffix, INT d)
+
+Description
+	Decrement value of counter "<head name>.<radical>.<suffix>"
+	The counter is created on the fly if it does not exist.
+	Documentation for "suffix" is created on the fly if it does
+	not exist (with default values).
+	Negative values are ignored.
+
+Example
+	DYNC.decr(req.method, "req", 1);
+
+$Method VOID .set(STRANDS radical, STRING suffix, INT d)
+
+Description
+	Set value of counter "<head name>.<radical>.<suffix>"
+	The counter is created on the fly if it does not exist.
+	Documentation for "suffix" is created on the fly if it does
+	not exist (with default values).
+	Negative values are ignored.
+
+Example
+	DYNC.set(req.method, "req", 1);
 
 
 SEE ALSO
