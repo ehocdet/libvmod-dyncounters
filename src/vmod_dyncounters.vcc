@@ -11,7 +11,8 @@ DESCRIPTION
 
 `vmod_dyncounters` enables custom counters in a dynamic manner.
 Dynamic counters can persist between VCL loads.
-Module can support a lot of counters.
+This module is designed to support many dynamic counters: you
+must take care of cardinality and VSM memory.
 
 vcl sample:
 ::
@@ -61,8 +62,10 @@ $Object head()
 
 Description
 	Create a head of dynamique counters. The object name is the prefix
-	of all counter names attached to the head. The head and its counters
-	persist between VCLs until a VCL has vcl_init the object.
+	of all counter names attached to the head. He appears as such in
+	varnishstat, at the same level as MGT, MAIN, VBE, ...
+	The head and its counters persist between VCLs until a VCL has
+	vcl_init the object.
 
 Example
 	new DYNC = dyncounters.head();
