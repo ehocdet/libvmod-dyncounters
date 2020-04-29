@@ -171,7 +171,7 @@ the necessary paths.
 
 Usage::
 
- ./bootstrap
+ ./autogen.sh
  ./configure
 
 If you have installed Varnish to a non-standard directory, call

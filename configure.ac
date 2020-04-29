@@ -1,5 +1,5 @@
 AC_PREREQ([2.68])
-AC_INIT([libvmod-dyncounters], [0.1], [], [vmod-dyncounters])
+AC_INIT([libvmod-dyncounters], [0.1])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADER([config.h])
@@ -11,12 +11,21 @@ AM_PROG_AR
 LT_PREREQ([2.2.6])
 LT_INIT([dlopen disable-static])
 
+AX_PTHREAD(,[AC_MSG_ERROR([Could not configure pthreads support])])
+
+LIBS="$PTHREAD_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CC="$PTHREAD_CC"
+
 AC_ARG_WITH([rst2man],
 	AS_HELP_STRING(
 		[--with-rst2man=PATH],
 		[Location of rst2man (auto)]),
 	[RST2MAN="$withval"],
 	AC_CHECK_PROGS(RST2MAN, [rst2man rst2man.py], []))
+
+
+m4_ifndef([VARNISH_PREREQ], AC_MSG_ERROR([Need varnish.m4 -- see README.rst]))
 
 VARNISH_PREREQ([6.2.0])
 VARNISH_VMODS([dyncounters])
