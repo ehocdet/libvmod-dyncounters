@@ -3,12 +3,18 @@
 VMOD dyncounters - Varnish dynamic counters module
 ==================================================
 
+:Author: Emmanuel Hocdet
+:Date: 2020-04-17
+:Version: 0.1
+:Support Varnish Version: 6.2.x 6.3.x 6.4.x
+
 DESCRIPTION
 ===========
 
 `vmod_dyncounters` enables custom counters in a dynamic manner.
 Dynamic counters can persist between VCL loads.
-Module can support a lot of counters.
+This module is designed to support many dynamic counters: you
+must take care of cardinality and VSM memory.
 
 vcl sample:
 ::
@@ -58,8 +64,10 @@ new xhead = dyncounters.head()
 
 Description
 	Create a head of dynamique counters. The object name is the prefix
-	of all counter names attached to the head. The head and its counters
-	persist between VCLs until a VCL has vcl_init the object.
+	of all counter names attached to the head. He appears as such in
+	varnishstat, at the same level as MGT, MAIN, VBE, ...
+	The head and its counters persist between VCLs until a VCL has
+	vcl_init the object.
 
 Example
 	new DYNC = dyncounters.head();
@@ -149,14 +157,72 @@ Example
 	DYNC.set(req.method, "req", 1);
 
 
-SEE ALSO
-========vcl\(7),varnishd\(1)
+Compilation
+---------------------
 
-COPYRIGHT
-=========
+For other platforms you would use compilation.
+
+The source tree is based on autotools to configure the building, and
+does also have the necessary bits in place to do functional unit tests
+using the ``varnishtest`` tool.
+
+Building requires the Varnish header files and uses pkg-config to find
+the necessary paths.
+
+Usage::
+
+ ./bootstrap
+ ./configure
+
+If you have installed Varnish to a non-standard directory, call
+``autogen.sh`` and ``configure`` with ``PKG_CONFIG_PATH`` pointing to
+the appropriate path. For instance, when varnishd configure was called
+with ``--prefix=$PREFIX``, use
 
 ::
 
-  Copyright (c) 2020 Emmanuel Hocdet
-  https://github.com/ehocdet/libvmod-dyncounters/
- 
+ export PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig
+ export ACLOCAL_PATH=${PREFIX}/share/aclocal
+
+The module will inherit its prefix from Varnish, unless you specify a
+different ``--prefix`` when running the ``configure`` script for this
+module.
+
+Make targets:
+
+* make - builds the vmod.
+* make install - installs your vmod.
+* make check - runs the unit tests in ``src/tests/*.vtc``.
+* make distcheck - run check and prepare a tarball of the vmod.
+
+If you build a dist tarball, you don't need any of the autotools or
+pkg-config. You can build the module simply by running::
+
+ ./configure
+ make
+
+Installation directories
+------------------------
+
+By default, the vmod ``configure`` script installs the built vmod in the
+directory relevant to the prefix. The vmod installation directory can be
+overridden by passing the ``vmoddir`` variable to ``make install``.
+
+
+COMMON PROBLEMS
+===============
+
+* configure: error: Need varnish.m4 -- see README.rst
+
+  Check whether ``PKG_CONFIG_PATH`` and ``ACLOCAL_PATH`` were set correctly
+  before calling ``autogen.sh`` and ``configure``
+
+* Incompatibilities with different Varnish Cache versions
+
+  Make sure you build this vmod against its correspondent Varnish Cache version.
+  For instance, to build against Varnish Cache 4.1, this vmod must be built from
+  branch 4.1.
+
+* Require GCC
+
+  This vmod using GCC Atomic builtins.
