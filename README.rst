@@ -63,11 +63,11 @@ new xhead = dyncounters.head()
 ------------------------------
 
 Description
-	Create a head of dynamique counters. The object name is the prefix
-	of all counter names attached to the head. He appears as such in
+	Create a head of dynamic counters. The object name is the prefix
+	of all counter names attached to the head. It appears as such in
 	varnishstat, at the same level as MGT, MAIN, VBE, ...
-	The head and its counters persist between VCLs until a VCL has
-	vcl_init the object.
+	The head and its counters persist between VCLs as long as a VCL
+	has vcl_init the object.
 
 Example
 	new DYNC = dyncounters.head();
