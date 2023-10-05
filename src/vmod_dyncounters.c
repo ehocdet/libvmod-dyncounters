@@ -88,6 +88,7 @@ vmod_head__init(VRT_CTX, struct vmod_dyncounters_head **ph, const char *vcl_name
 		h->name = strdup(vcl_name);
 		AZ(pthread_mutex_init(&h->doc_mtx, NULL));
 		AZ(pthread_mutex_init(&h->vsm_mtx, NULL));
+		AZ(pthread_mutex_init(&h->insert_mtx, NULL));
 		VTAILQ_INIT(&(h->doc));
 		VTAILQ_INIT(&(h->vsm));
 		VTAILQ_INSERT_HEAD(&vmod_dyncounters_pool, h, list);
@@ -120,6 +121,7 @@ vmod_dyncounters_event(VRT_CTX, struct vmod_priv *priv, enum vcl_event_e e)
 			vmod_dyncounters_free_doc(h);
 			AZ(pthread_mutex_destroy(&h->doc_mtx));
 			AZ(pthread_mutex_destroy(&h->vsm_mtx));
+			AZ(pthread_mutex_destroy(&h->insert_mtx));
 			free(h->name);
 			FREE_OBJ(h);
 		}

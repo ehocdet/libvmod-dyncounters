@@ -183,8 +183,11 @@ obj_insert(VRT_CTX, struct vmod_dyncounters_head *head, VCL_STRANDS radical, VCL
 	args.ctx = ctx;
 	args.vsm = NULL;
 
+	pthread_mutex_lock(&head->insert_mtx);
 	while (!(o2 = (struct vmod_dyn_vsc *) lft_insert(&head->root, sha256, &vsc_obj_func, (uintptr_t *) &o, (uintptr_t) &args)))
-		;
+	;
+	pthread_mutex_unlock(&head->insert_mtx);
+
 	CHECK_OBJ_NOTNULL(o2, VMOD_DYN_VSC_MAGIC);
 	if (o == o2) {
 		/* new obj */

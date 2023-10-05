@@ -51,11 +51,12 @@ struct vmod_dyncounters_head {
 	unsigned		load;
 	char			*name;
 	pthread_mutex_t		doc_mtx;
-        VTAILQ_HEAD(,vmod_dyncounters_doc) doc;
+	VTAILQ_HEAD(,vmod_dyncounters_doc) doc;
 	pthread_mutex_t		vsm_mtx;
-        VTAILQ_HEAD(vscmemhead,vmod_dyncounters_vsm) vsm;
+	VTAILQ_HEAD(vscmemhead,vmod_dyncounters_vsm) vsm;
 	lft_root                root;
 	VTAILQ_ENTRY(vmod_dyncounters_head) list;
+	pthread_mutex_t		insert_mtx;
 };
 
 struct vmod_dyncounters_doc * vmod_dyncounters_add_doc(struct vmod_dyncounters_head *, VCL_STRING name, VCL_ENUM format, VCL_ENUM type, VCL_ENUM level, VCL_STRING oneliner, int);
